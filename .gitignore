@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.local
+prototype.html
+
+# children's and parents' personal data: never commit
+private/
+data/squads.json
+*.png
+!public/*.png
