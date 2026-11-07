@@ -145,7 +145,9 @@ window.STORE = {
     for (const x of (f?.all || []).filter(x => x.status === "unverified")) await sb.auth.mfa.unenroll({ factorId: x.id });
     const { data, error } = await sb.auth.mfa.enroll({ factorType: "totp", friendlyName: "Melita Head Coach" });
     if (error) throw error;
-    return { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret };
+    const q = data.totp.qr_code || "";
+    const qr = q.startsWith("data:") ? q : "data:image/svg+xml;charset=utf-8," + encodeURIComponent(q);
+    return { factorId: data.id, qr, secret: data.totp.secret };
   },
   async mfaVerify(factorId, code) {
     const { error } = await sb.auth.mfa.challengeAndVerify({ factorId, code });
