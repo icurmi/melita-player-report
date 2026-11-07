@@ -93,8 +93,11 @@ function templateDraft(p, sec){
 function renderHeader(){
   const inApp = st.step==="app";
   $("#meta").textContent = `${grp()?grp().label+" · ":""}${S.cycle.label}`;
-  $("#coachBox").innerHTML = coach.name && st.step!=="login"
-    ? `<div class="who"><span>${esc(coach.name)}</span><span class="role">${esc(coach.role)} coach</span>${inApp?`<button data-edit>Edit details</button>`:""}${S.mode==="live"?`<button data-signout>Sign out</button>`:""}</div>` : "";
+  const out = S.mode==="live" ? `<button data-signout>Sign out</button>` : "";
+  $("#coachBox").innerHTML = st.step==="login" ? ""
+    : coach.name
+    ? `<div class="who"><span>${esc(coach.name)}</span><span class="role">${esc(coach.role)} coach</span>${inApp?`<button data-edit>Edit details</button>`:""}${out}</div>`
+    : (out && auth?.signedIn ? `<div class="who"><span>${esc(auth.email||"")}</span>${out}</div>` : "");
   const tabs = [["rate","Rate squad"],["overview","Squad overview"]];
   if(isLead()) tabs.push(["comments","Comments"]);
   tabs.push(["review","Review & submit"]);
