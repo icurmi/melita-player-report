@@ -3,7 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 
 const SB_URL = import.meta.env.VITE_SUPABASE_URL;
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const sb = createClient(SB_URL, KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: "pkce" } });
+const CONFIGURED = !!(SB_URL && KEY);
+const sb = CONFIGURED ? createClient(SB_URL, KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: "pkce" } }) : null;
 
 let cache = { groups: [], attrs: [], cycle: null, user: null, activity: {} };
 const must = ({ data, error }) => { if (error) throw error; return data; };
@@ -12,6 +13,7 @@ window.STORE = {
   mode: "live",
   get cycle() { return cache.cycle || { id: "", label: "" }; },
   async init() {
+    if (!CONFIGURED) throw new Error("NOT_CONFIGURED");
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return { signedIn: false };
     cache.user = session.user;

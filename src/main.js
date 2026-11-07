@@ -817,6 +817,8 @@ try{
   render();
 }catch(err){
   console.error(err);
-  $("#view").innerHTML = `<div class="onb"><div class="card"><h2>Something went wrong</h2><p>We couldn't load the player report. Check your connection and refresh the page. If it keeps happening, tell the Head Coach.</p></div></div>`;
+  $("#view").innerHTML = err?.message==="NOT_CONFIGURED"
+    ? `<div class="onb"><div class="card"><h2>Setup needed</h2><p>This site isn't connected to the database yet. In Netlify, add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> under Site configuration → Environment variables, then trigger a new deploy.</p></div></div>`
+    : `<div class="onb"><div class="card"><h2>Something went wrong</h2><p>We couldn't load the player report. Check your connection and refresh the page. If it keeps happening, tell the Head Coach.</p></div></div>`;
 }
 })();

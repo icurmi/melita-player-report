@@ -5,8 +5,10 @@ import "./styles.css";
 import "./report.js";
 import { createClient } from "@supabase/supabase-js";
 
-const sb = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY,
-  { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+const sb = (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
+  ? createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY,
+      { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } })
+  : null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const MODE = document.body.dataset.mode;           // "confirm" or "report"
@@ -80,5 +82,6 @@ function showReport(r) {
   $("#pdf").addEventListener("click", () => window.print());
 }
 
-if (!token) message(...why.invalid);
+if (!sb) message("Not available yet", "This page isn't connected yet. Please try again later.");
+else if (!token) message(...why.invalid);
 else { dobForm(); document.addEventListener("submit", submit); }
