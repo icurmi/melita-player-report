@@ -1,5 +1,5 @@
 # Keeps the free Supabase project from pausing: a tiny database call every 2 days.
-# Add two repository secrets: SUPABASE_URL and SUPABASE_ANON_KEY (Settings → Secrets and variables → Actions).
+# Add two repository secrets: SUPABASE_URL and SUPABASE_ANON_KEY (the sb_publishable_… key) under Settings → Secrets and variables → Actions.
 name: Supabase keep-alive
 on:
   schedule:
@@ -13,7 +13,7 @@ jobs:
         run: |
           for i in 1 2 3; do
             code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/ping" \
-              -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" -H "Content-Type: application/json" -d '{}')
+              -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" -H "Content-Type: application/json" -d '{}')
             echo "HTTP $code"; [ "$code" = "200" ] && exit 0; sleep 20
           done
           exit 1

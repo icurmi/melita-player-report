@@ -1,7 +1,7 @@
 // Drafts a short report comment from a player's scores using Claude.
 // Deploy: supabase functions deploy draft-comment
 // Secret: supabase secrets set ANTHROPIC_API_KEY=sk-ant-...   (optional DRAFT_MODEL, default claude-haiku-5-5)
-import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",

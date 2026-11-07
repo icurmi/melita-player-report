@@ -3,7 +3,7 @@
 // Deploy:  supabase functions deploy send-emails
 // Secrets: supabase secrets set RESEND_API_KEY=re_... SITE_URL=https://reports.melitafc.com \
 //          EMAIL_FROM="Melita FC <reports@melitafc.com>" EMAIL_REPLY_TO=academy@melitafc.com
-import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 import { sendAll, type Prepared, type Purpose } from "./logic.ts";
 
 const cors = { "Access-Control-Allow-Origin": Deno.env.get("SITE_URL") ?? "*",
