@@ -14,8 +14,10 @@ window.STORE = {
   get cycle() { return cache.cycle || { id: "", label: "" }; },
   async init() {
     if (!CONFIGURED) throw new Error("NOT_CONFIGURED");
+    const hadLink = /[?&#](code|error|error_description|token_hash)=/.test(location.search + location.hash);
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) return { signedIn: false };
+    if (hadLink) history.replaceState(null, "", location.pathname);
+    if (!session) return { signedIn: false, linkFailed: hadLink };
     cache.user = session.user;
     const email = (session.user.email || "").toLowerCase();
     const staff = must(await sb.from("staff").select("email,is_head_coach,active").eq("email", email).maybeSingle());
@@ -38,6 +40,10 @@ window.STORE = {
   async sendLink(email) {
     const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
     if (error) throw new Error(error.message.includes("rate") ? "Too many attempts. Wait a minute and try again." : error.message);
+  },
+  async verifyCode(email, token) {
+    const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+    if (error) throw error;
   },
   async signOut() { await sb.auth.signOut(); try { localStorage.removeItem("melita-ui-v5"); } catch (e) {} },
 

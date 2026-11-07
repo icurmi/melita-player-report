@@ -106,21 +106,28 @@ function renderHeader(){
 }
 
 /* ---------- sign in (live only) ---------- */
+let loginMsg = "";
 function renderLogin(msg=""){
   $("#view").innerHTML = `<div class="onb"><form class="card" id="loginForm" novalidate>
     <div><h2>Player Report 2026/27</h2></div>
-    <p>Sign in with your email. We'll send you a link: open it on this device and you're in. No password needed.</p>
+    <p>Sign in with your email. We'll email you a sign-in code. No password needed.</p>
     <div class="fld"><label for="l-email">Email</label>
       <input id="l-email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required>
       <span class="err">${esc(msg)}</span></div>
-    <div class="actions"><span></span><button class="btn primary" type="submit">Send sign-in link</button></div>
+    <div class="actions"><span></span><button class="btn primary" type="submit">Email me a code</button></div>
   </form></div>`;
 }
-function renderLinkSent(email){
-  $("#view").innerHTML = `<div class="onb"><div class="card">
+function renderLinkSent(email, msg=""){
+  $("#view").innerHTML = `<div class="onb"><form class="card" id="codeForm" novalidate>
     <div><h2>Check your email</h2></div>
-    <p>We sent a sign-in link to <b>${esc(email)}</b>. Open it on this device to continue. It can take a minute to arrive; check your spam folder too.</p>
-    <div class="actions"><button class="btn" data-relogin>Use a different email</button><span></span></div></div></div>`;
+    <p>We sent a sign-in email to <b>${esc(email)}</b>. Type the code from the email below. It works on any device and can take a minute to arrive; check your spam folder too.</p>
+    <input type="hidden" name="email" value="${esc(email)}">
+    <div class="fld"><label for="l-code">Sign-in code</label>
+      <input id="l-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" required>
+      <span class="err">${esc(msg)}</span></div>
+    <div class="actions"><button class="btn" type="button" data-relogin>Use a different email</button><button class="btn primary" type="submit">Sign in</button></div>
+  </form></div>`;
+  setTimeout(()=>$("#l-code")?.focus(), 0);
 }
 function renderNotStaff(){
   $("#view").innerHTML = `<div class="onb"><div class="card">
@@ -583,7 +590,7 @@ async function doSend(purpose, mode, extra={}){
 function render(){
   const keep = [".board","aside.attrs",".tray",".ov",".tw"].map(sel=>{ const el=$(sel); return el && [sel, el.scrollTop, el.scrollLeft]; }).filter(Boolean);
   renderHeader();
-  if(st.step==="login") renderLogin();
+  if(st.step==="login"){ renderLogin(loginMsg); loginMsg=""; }
   else if(st.step==="notstaff") renderNotStaff();
   else if(st.step==="details") renderDetails();
   else if(st.step==="intro") renderIntro();
@@ -644,6 +651,14 @@ document.addEventListener("submit", async e=>{
     f.querySelector("button").disabled = true;
     try{ await S.sendLink(email); renderLinkSent(email); }
     catch(err){ renderLogin(err.message || "Couldn't send the link. Try again in a minute."); }
+    return;
+  }
+  if(f.id==="codeForm"){
+    const email = f.email.value, code = f.code.value.replace(/\D/g,"");
+    if(code.length<6){ renderLinkSent(email, "Enter the code from the email."); return; }
+    f.querySelector("[type=submit]").disabled = true;
+    try{ await S.verifyCode(email, code); location.replace(location.pathname); }
+    catch(err){ renderLinkSent(email, "That code didn't work or has expired. Check the latest email, or use a different email to get a new code."); }
     return;
   }
   if(f.id==="mfaForm"){
@@ -804,7 +819,7 @@ $("#view").innerHTML = `<div class="onb"><div class="card"><p>Loading…</p></di
 try{
   auth = await S.init();
   ATTRS = S.attrs(); GROUPS = S.groups(); PILLARS = [...new Set(ATTRS.map(a=>a.p))];
-  if(!auth.signedIn){ st.step = "login"; }
+  if(!auth.signedIn){ st.step = "login"; if(auth.linkFailed) loginMsg = "That sign-in link didn't work here (it may have expired or been opened in a different browser). Enter your email to get a new code."; }
   else if(!auth.isStaff){ st.step = "notstaff"; }
   else {
     const prof = await S.profile();
